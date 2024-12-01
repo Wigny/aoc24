@@ -1,0 +1,50 @@
+<!-- vim: set syntax=markdown: -->
+
+# Day 1
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.14"}
+])
+```
+
+## Input
+
+```elixir
+input = Kino.Input.textarea("Insert the input:")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+{left_list, right_list} =
+  input
+  |> Kino.Input.read()
+  |> String.split([" ", "\n"], trim: true)
+  |> Enum.map(&String.to_integer/1)
+  |> Enum.chunk_every(2)
+  |> Enum.map(&List.to_tuple/1)
+  |> Enum.unzip()
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+[Enum.sort(left_list), Enum.sort(right_list)]
+|> Enum.zip_with(fn [a, b] -> abs(a - b) end)
+|> Enum.sum()
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+number_frequencies = Enum.frequencies(right_list)
+
+left_list
+|> Enum.map(&(Map.get(number_frequencies, &1, 0) * &1))
+|> Enum.sum()
+```
