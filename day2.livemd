@@ -1,0 +1,98 @@
+<!-- vim: set syntax=markdown: -->
+
+# Day 2
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.14"}
+])
+```
+
+## Input
+
+```elixir
+input = Kino.Input.textarea("Insert the input:")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+reports =
+  input
+  |> Kino.Input.read()
+  |> String.split(["\n"], trim: true)
+  |> Enum.map(fn report ->
+    report
+    |> String.split()
+    |> Enum.map(&String.to_integer/1)
+  end)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+reports
+|> Enum.filter(fn report ->
+  sorted? = report == Enum.sort(report, :asc) or report == Enum.sort(report, :desc)
+
+  {safe?, _end} =
+    Enum.reduce_while(report, {true, nil}, fn
+      value, {true, nil} ->
+        {:cont, {true, value}}
+
+      value, {_safe?, previous} ->
+        if abs(value - previous) in 1..3 do
+          {:cont, {true, value}}
+        else
+          {:halt, {false, value}}
+        end
+    end)
+
+  sorted? and safe?
+end)
+|> Enum.count()
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Report do
+  def check(report) do
+    (sorted?(report) and safe?(report)) or check(report, 0)
+  end
+
+  def check(report, pos) when pos > length(report) do
+    false
+  end
+
+  def check(original_report, pos) do
+    report = List.delete_at(original_report, pos)
+    (sorted?(report) and safe?(report)) or check(original_report, pos + 1)
+  end
+
+  defp safe?(report) do
+    Enum.all?(Enum.with_index(report), fn {value, index} ->
+      next_value = Enum.at(report, index + 1)
+      safe_value?(value, next_value)
+    end)
+  end
+
+  defp safe_value?(_value, nil) do
+    true
+  end
+
+  defp safe_value?(value, next_value) do
+    abs(value - next_value) in 1..3
+  end
+
+  defp sorted?(report) do
+    report == Enum.sort(report, :asc) or report == Enum.sort(report, :desc)
+  end
+end
+
+Enum.count(reports, &Report.check/1)
+```
